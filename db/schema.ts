@@ -42,11 +42,21 @@ export const turnStatusEnum = pgEnum("turn_status", [
 export const users = pgTable("users", {
   id: uuid("id").primaryKey().defaultRandom(),
 
-  // From Discord OAuth profile
+  // ── Required by @auth/drizzle-adapter's DefaultPostgresUsersTable contract ──
+  // The adapter reads/writes these exact columns regardless of provider.
+  // We populate `name`/`image` from the Discord profile in lib/auth.ts;
+  // `email` stays null since we deliberately don't request Discord's
+  // email scope (see lib/auth.ts comment), and `emailVerified` is unused
+  // for an OAuth-only, no-email-login setup but must exist on the table.
+  name: text("name"),
+  email: text("email"),
+  emailVerified: timestamp("email_verified", { withTimezone: true }),
+  image: text("image"),
+
+  // ── Our own domain fields ──
   discordId: text("discord_id").notNull(),
   discordUsername: text("discord_username").notNull(),
   discordAvatar: text("discord_avatar"),
-  email: text("email"),
 
   // Platform identity
   role: accountRoleEnum("role").notNull().default("player"),
